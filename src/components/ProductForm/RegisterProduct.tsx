@@ -59,14 +59,14 @@ export default function RegisterProduct({actionSubmitForm}:PropsRegisterProduct)
                         <Field.Label>
                             Quantidade
                         </Field.Label>
-                        <Input {...register("qtd", { required: "Campo obrigatório" })} placeholder="Quantidade" />
+                        <Input {...register("qtd", { required: "Campo obrigatório" })} placeholder="Quantidade" type="number" step="0.01"/>
                     </Field.Root>
                 ):typeProduct=='kg'?(
                     <Field.Root>
                         <Field.Label>
                             Kg
                         </Field.Label>
-                        <Input {...register("kg", { required: "Campo obrigatório" })} placeholder="Kg" />
+                        <Input {...register("kg", { required: "Campo obrigatório" })} placeholder="Kg" type="number" step="0.01" />
                     </Field.Root>
                 ):<></>
 
