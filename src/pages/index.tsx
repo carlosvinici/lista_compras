@@ -3,23 +3,12 @@ import { useEffect, useState } from 'react';
 import { toaster } from '../components/ui/toaster';
 import Modal from '../components/ui/modal';
 import RegisterProduct from '../components/ProductForm/RegisterProduct';
-import AddShop from '../components/ProductForm/AddShop';
-import { FiDelete } from 'react-icons/fi';
+import AddShop, { IFormData } from '../components/ProductForm/AddShop';
 import { MdDeleteOutline } from 'react-icons/md';
 
-type IProducts = {
-  id: string;
-  name: string;
-  kg?: number;
-  qtd?: number;
-  price?: number;
-  description?: string;
-  isChecked?: boolean;
-}
-
 const Home = () => {
-  const [products, setProducts] = useState<IProducts[]>([]);
-  const [selectedProduct, setSelectedProduct] = useState<IProducts>();
+  const [products, setProducts] = useState<IFormData[]>([]);
+  const [selectedProduct, setSelectedProduct] = useState<IFormData>();
   const [open, setOpen] = useState(false);
   const [openAddShop, setOpenAddShop] = useState(false);
   const [tabs, setTabs] = useState("products");
@@ -28,7 +17,7 @@ const Home = () => {
     refreshData()
   }, [])
 
-  function getData():IProducts[]{
+  function getData():IFormData[]{
     const getProducts = localStorage.getItem('products')||'[]';
     try {
       const parseProducts = JSON.parse(getProducts)
@@ -59,15 +48,23 @@ const Home = () => {
     refreshData()
   }
 
+  function handleDeleteProduct(id:string): void {
+    const data = getData()
+    const removedItem = data?.filter(product=>product.id!=id)
+    localStorage.setItem('products', JSON.stringify(removedItem))
+    refreshData()
+  }
+
   function totalPrice(){
+    const calc = (price:number, kg:number, qtd:number ) => price ? ((kg || qtd)||1) * price : 0
     let totalPrice = 0;
     if(tabs=='products'){
       products.forEach(prodt=>{
-        totalPrice += prodt?.price||0
+        totalPrice += calc(prodt?.price||0, prodt?.kg||0, prodt?.qtd||0)
       })
     } else if(tabs=='shop'){
       products.filter(prodt=>prodt?.isChecked)?.forEach(prodt=>{
-        totalPrice += prodt?.price||0
+        totalPrice += calc(prodt?.price||0, prodt?.kg||0, prodt?.qtd||0)
       })
     }
     return totalPrice.toLocaleString('pt-br',{style: 'currency', currency: 'BRL'})
@@ -93,10 +90,18 @@ const Home = () => {
             {
               products?.map((product)=>{
                 return (
+                  <Flex 
+                    key={product?.id}
+                    align={"center"}
+                    justify={"center"}
+                    w="100%" 
+                    maxW={"500px"}
+                    borderRadius={"10px"}
+                  >
                   <Button 
                     key={product?.id} 
                     size="xs" 
-                    w="100%" 
+                    w={"90%"} 
                     variant="surface"
                     colorPalette={product?.isChecked?"green":"blue"}
                     maxW='500px' 
@@ -107,6 +112,18 @@ const Home = () => {
                   >
                     {product?.name}
                   </Button>
+                  <IconButton 
+                    size="xs" 
+                    w="10%"
+                    color="red.300"
+                    borderRadius={"10px"}
+                    variant="ghost"
+                    onClick={()=>handleDeleteProduct(product.id)}
+                    _hover={{color: "red.500"}}
+                  >
+                    <MdDeleteOutline />
+                  </IconButton >
+                  </Flex>
                 )
               })
             }
@@ -124,16 +141,20 @@ const Home = () => {
           </Modal>
 
           <Modal
-            title='Carrinho'
+            title='Confirme os Dados'
             setStateModal={setOpenAddShop}
             stateModal={openAddShop}
           >
             <AddShop defaultValues={{
               name: selectedProduct?.name||'', 
-              description: selectedProduct?.description, 
-              kg: selectedProduct?.kg, 
-              price: selectedProduct?.price, 
-              qtd: selectedProduct?.qtd}} 
+              description: selectedProduct?.description||'', 
+              kg: selectedProduct?.kg||0, 
+              price: selectedProduct?.price||0, 
+              qtd: selectedProduct?.qtd||0,
+              id: selectedProduct?.id||'',
+              isChecked: selectedProduct?.isChecked||false,
+              typeProduct: selectedProduct?.typeProduct||'uni'
+            }} 
               actionSubmitForm={()=>{
                 refreshData();
                 setOpenAddShop(false)

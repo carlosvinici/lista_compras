@@ -7,32 +7,32 @@ import {
   Stack,
   Field,
   Badge,
+  Flex,
 } from "@chakra-ui/react";
 import { v4 as uuidv4 } from "uuid";
+import { useState } from "react";
+import SelectTypeProduct from "./selectTypeProduct";
+import { IFormData } from "./AddShop";
 
-type FormData = {
-  name: string;
-  kg?: string;
-  qtd?: number;
-  price?: number;
-  description?: string;
-};
 type PropsRegisterProduct = {
     actionSubmitForm:()=>void
 }
 
 export default function RegisterProduct({actionSubmitForm}:PropsRegisterProduct) {
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<FormData>();
+  const { register, handleSubmit, reset, formState: { errors } } = useForm<IFormData>();
+  const [ typeProduct, setTypeProduct ] = useState<'uni'|'kg'>('uni')
   
-  const onSubmit = (data: FormData) => {
+  const onSubmit = (data: IFormData) => {
     const products = JSON.parse(localStorage.getItem("products") || "[]");
-    const newProduct = {
+    const newProduct:IFormData = {
       name: data.name,
       qtd: data?.qtd? Number(data?.qtd) : 0,
       kg: data?.kg? Number(data?.kg) : 0,
-      price: data?.price? Number(data?.kg) : 0,
+      price: data?.price? Number(data?.price) : 0,
       id: uuidv4(),
       isChecked: false,
+      description: data?.description||'',
+      typeProduct: typeProduct
     };
     localStorage.setItem("products", JSON.stringify([...products, newProduct]));
     reset();
@@ -51,46 +51,32 @@ export default function RegisterProduct({actionSubmitForm}:PropsRegisterProduct)
                 />
             </Field.Root>
 
-            <Field.Root>
-                <Field.Label>
-                    Kg
-                    <Field.RequiredIndicator
-                        fallback={
-                            <Badge size="xs" variant="surface">
-                                Optional
-                            </Badge>
-                        }
-                    />
-                </Field.Label>
-                <Input {...register("kg")} type="number" placeholder="Kg" />
-            </Field.Root>
+            <SelectTypeProduct setTypeProduct={setTypeProduct} typeProduct={typeProduct} />
 
-            <Field.Root>
-                <Field.Label>
-                    Quantidade
-                    <Field.RequiredIndicator
-                        fallback={
-                            <Badge size="xs" variant="surface">
-                                Optional
-                            </Badge>
-                        }
-                    />
-                </Field.Label>
-                <Input {...register("qtd")} type="number" placeholder="Quantidade" />
-            </Field.Root>
+            {
+                typeProduct=='uni'?(
+                    <Field.Root>
+                        <Field.Label>
+                            Quantidade
+                        </Field.Label>
+                        <Input {...register("qtd", { required: "Campo obrigatório" })} placeholder="Quantidade" />
+                    </Field.Root>
+                ):typeProduct=='kg'?(
+                    <Field.Root>
+                        <Field.Label>
+                            Kg
+                        </Field.Label>
+                        <Input {...register("kg", { required: "Campo obrigatório" })} placeholder="Kg" />
+                    </Field.Root>
+                ):<></>
 
+            }
+            
             <Field.Root>
                 <Field.Label>
-                    Valor (Uni. ou 1Kg)
-                    <Field.RequiredIndicator
-                        fallback={
-                            <Badge size="xs" variant="surface">
-                                Optional
-                            </Badge>
-                        }
-                    />
+                    Valor ( 1 Unidade ou 1 Kg )
                 </Field.Label>
-                <Input {...register("price")} type="number" step="0.01" placeholder="0.0" />
+                <Input {...register("price", { required: "Campo obrigatório" })} type="number" step="0.01" placeholder="0.0" />
             </Field.Root>
 
             <Field.Root>

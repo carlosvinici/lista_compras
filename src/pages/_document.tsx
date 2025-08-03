@@ -13,7 +13,7 @@ export default class Document extends NextDocument {
 
   render() {
     return (
-      <Html suppressHydrationWarning>
+      <Html suppressHydrationWarning lang="pt-Br">
         <Head />
         <body>
           <Main />
